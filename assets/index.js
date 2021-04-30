@@ -71,3 +71,61 @@ const start = () => {
 
     })
 }
+
+//Arrays by category
+
+//role section
+const roleArr = (res) => {
+
+    const roles = [];
+    res.map(obj => {
+        let newObj = {
+            name: obj.id + ". " + obj.title,
+            value: {
+                id: obj.id,
+                title: obj.title,
+                salary: obj.salary,
+                department_id: obj.department_id
+            }
+        }
+        roles.push(newObj)
+    })
+    return roles;
+}
+//manager section
+const managerArr = (res) => {
+
+    const managers = [];
+    res.map(obj => {
+        let newObj = {
+            name: obj.id + ". " + obj.first_name + " " + obj.last_name,
+            value: {
+                id: obj.id,
+                first_name: obj.title,
+                last_name: obj.salary
+            }
+        }
+        managers.push(newObj)
+    })
+    return managers;
+}
+
+//employee section
+const empArr = (res) => {
+    const employees = [];
+    res.map(obj => {
+        let newObj = {
+            name: obj.id + ". " + obj.first_name + " " + obj.last_name,
+            value: {
+                id: obj.id,
+                first_name: obj.first_name,
+                last_name: obj.last_name,
+                role_id: obj.role_id,
+                managers_id: obj.manager_id
+            }
+        };
+        employees.push(newObj)
+    })
+    return employees;
+
+}
