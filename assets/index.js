@@ -16,7 +16,7 @@ connection.connect(function (err) {
         return;
     }
     console.log(`connected as id ${connection.threadId}`);
-    const welcomeText = `---------------------------------------------------------------
+    const welcomeText= `-------------------------------------------
     ####### #     # ######  #       ####### #     # ####### #######    
     #       ##   ## #     # #       #     #  #   #  #       #          
     #       # # # # #     # #       #     #   # #   #       #          
@@ -35,7 +35,7 @@ connection.connect(function (err) {
     ---------------------------------------------------------------
     `
 
-    console.log("\x1b[34m", welcometext)
+    console.log("\x1b[34m", welcomeText)
     start();
 });
 
