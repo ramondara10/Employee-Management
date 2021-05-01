@@ -465,3 +465,167 @@ const updateEmp = () => {
     })
 }
 
+const allRoles = () => {
+    connection.query(`
+    SELECT id, title, salary FROM role
+    `, (err, res) => {
+        if (err) throw err;
+        consoleResult(err, res)
+    })
+}
+
+const allDep = () => {
+    connection.query(`
+    SELECT id, name FROM department
+    `, (err, res) => {
+        if (err) throw err;
+        consoleResult(err, res)
+    })
+}
+
+const addRole = () => {
+    connection.query(`
+    SELECT * FROM department
+    `, (err, res) => {
+        if (err) throw err;
+        const departmentArr = depArr(res);
+        inquirer.prompt([
+            {
+                name: "newRole",
+                type: "input",
+                message: "What is the new role called?"
+            },
+            {
+                name: "newSal",
+                type: "input",
+                message: "Salary for new role"
+            },
+            {
+                name: "newDept",
+                type: "list",
+                message: "What department does this role belong in?",
+                choices: departmentArr
+            }
+        ]).then(answer => {
+
+            const newRole = {
+                title: answer.newRole,
+                salary: answer.newSal,
+                department_id: answer.newDept.id
+            }
+
+            connection.query(`
+                INSERT INTO role SET ?
+                `, newRole, (err, res) => {
+                if (err) throw err;
+                // console.log(res)
+                allEmployees();
+            })
+        }).catch((error) => {
+            console.log(error.message);
+            res.json({ error: error.message });
+        })
+    })
+}
+
+
+
+const deleteRole = () => {
+    // delete a role from the role table
+    connection.query(`
+    SELECT * FROM role;
+    `, (err, res) => {
+        if (err) throw err;
+        const rolesArr = roleArr(res);
+        inquirer.prompt({
+            name: "deleteRole",
+            type: "list",
+            message: "Delete which role?",
+            choices: rolesArr
+        }).then(answer => {
+            // console.log(answer.deleteRole.id);
+            connection.query(`
+                DELETE FROM role WHERE id=? 
+                `, [answer.deleteRole.id], (err, res) => {
+                if (err) throw err;
+                console.log(res);
+                allEmployees();
+            })
+        }).catch((error) => {
+            console.log(error.message);
+            res.json({ error: error.message });
+        })
+    })
+}
+
+const addDep = () => {
+    inquirer.prompt({
+        name: "newDep",
+        type: "input",
+        message: "New department name"
+    }).then(answer => {
+        connection.query(`INSERT INTO department SET name=?`, [answer.newDep], (err, res) => {
+            if (err) throw err;
+            // console.log(res)
+            allEmployees();
+        })
+    }).catch((error) => {
+        console.log(error.message);
+        res.json({ error: error.message });
+    })
+
+}
+
+const deleteDep = () => {
+    connection.query(`
+    SELECT * FROM department;
+    `, (err, res) => {
+        if (err) throw err;
+        const departmentArr = depArr(res);
+        inquirer.prompt({
+            name: "delDep",
+            type: "list",
+            message: "Which department would you like to delete?",
+            choices: departmentArr
+        }).then(answer => {
+            connection.query(`DELETE FROM department WHERE id=?`, [answer.delDep.id], (err, res) => {
+                if (err) throw err;
+                allEmployees();
+            })
+        }).catch((error) => {
+            console.log(error.message);
+            res.json({ error: error.message });
+        })
+
+    })
+
+}
+
+const usedBudget = () => {
+    connection.query(`
+    SELECT SUM(r.salary) AS 'total pay'
+    FROM role r
+    JOIN employee e
+    ON e.role_id=r.id;
+    `, (err, res) => {
+        consoleResult(err, res);
+        // console.log
+    })
+}
+
+const consoleResult = (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    start();
+}
+
+const validator = function (input) {
+    const letters = /^[A-Za-z]+$/;
+    if (input.match(letters)) {
+        // console.log(`SUCCESS  !!!  Added new name: ${input}`)
+        return true;
+    } else {
+        console.log("ERROR  !!!  Your input can only contain upper and lower case letters, please try again")
+        return false;
+    }
+}
