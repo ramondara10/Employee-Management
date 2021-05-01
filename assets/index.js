@@ -195,6 +195,7 @@ const allEmpByDept = () => {
     });
 }
 
+
 const allEmpByRole = () => {
     // this is where we filter employees by their role
     connection.query(`SELECT * FROM role;`, (err, res) => {
@@ -323,6 +324,143 @@ const addEmp = () => {
                 console.log(error.message);
                 res.json({ error: error.message });
             })
+        })
+    })
+}
+
+const deleteEmp = () => {
+    // this is where we delete employees/roles/departments
+    connection.query("SELECT * FROM employee", (err, res) => {
+        if (err) throw err;
+        const employeeArr = empArr(res);
+
+        inquirer.prompt({
+            name: "employee",
+            type: "list",
+            message: "Which employee would you like to delete?",
+            choices: employeeArr
+        }).then((answer) => {
+            // console.log(answer.employee.id);
+            connection.query(`DELETE FROM employee WHERE id=?`, [answer.employee.id], (err, res) => {
+                if (err) throw err;
+                allEmployees();
+            })
+        }).catch((error) => {
+            console.log(error.message);
+            // res.json({ error: error.message });
+        });
+    })
+}
+
+const updateEmp = () => {
+    connection.query(`SELECT * FROM employee`, (err, res) => {
+        if (err) throw err;
+        const employeeArr = empArr(res);
+
+        inquirer.prompt([
+            {
+                name: "employee",
+                type: "list",
+                message: "Which employee would you like to update?",
+                choices: employeeArr
+            },
+            {
+                name: "update",
+                type: "list",
+                message: "What would you like to update?",
+                choices: ["Name", "Role", "Manager"]
+            }
+        ]).then(answer => {
+            const empId = answer.employee.id
+            if (answer.update === "Name") {
+                inquirer.prompt([
+                    {
+                        name: "firstName",
+                        type: "input",
+                        message: "Update employee first name"
+                    },
+                    {
+                        name: "lastName",
+                        type: "input",
+                        message: "Update employee last name"
+                    }
+                ]).then(answer2 => {
+                    console.log(empId);
+                    console.log(answer2.firstName + " " + answer2.lastName)
+
+                    const newEmpName = {
+                        first_name: answer2.firstName,
+                        last_name: answer2.lastName
+                    }
+                    connection.query(`
+                    UPDATE employee
+                    SET ?
+                    WHERE id =?`, [newEmpName, empId], (err, res) => {
+                        if (err) throw err;
+                        console.log("Employee Name Successfully Updated!")
+                        allEmployees();
+                    })
+                }).catch((error) => {
+                    console.log(error.message);
+                    res.json({ error: error.message });
+                })
+            }
+            if (answer.update === "Role") {
+                connection.query(`SELECT * FROM role`, (err, res) => {
+                    if (err) throw err;
+                    const rolesArr = roleArr(res);
+
+                    inquirer.prompt({
+                        name: "newRole",
+                        type: "list",
+                        message: "Choose a new role",
+                        choices: rolesArr
+                    }).then(answer2 => {
+                        connection.query(`
+                    UPDATE employee SET role_id=?
+                    WHERE id=?
+                    `, [answer2.newRole.id, empId], (err, res) => {
+                            if (err) throw err;
+                            // console.log(res)
+                            allEmployees();
+                        })
+                    }).catch((error) => {
+                        console.log(error.message);
+                        res.json({ error: error.message });
+                    })
+                })
+
+            }
+            if (answer.update === "Manager") {
+                connection.query(`
+                SELECT DISTINCT m.id, m.first_name, m.last_name
+                FROM employee e
+                JOIN employee m
+                ON e.manager_id = m.id;`, (err, res) => {
+
+                    if (err) throw err;
+                    const managersArr = managerArr(res);
+
+                    inquirer.prompt({
+                        name: "newManager",
+                        type: "list",
+                        message: "Choose a new manager",
+                        choices: managersArr
+                    }).then(answer2 => {
+                        connection.query(`
+                UPDATE employee SET manager_id=?
+                WHERE id=?
+                `, [answer2.newManager.id, empId], (err, res) => {
+                            if (err) throw err;
+                            // console.log(res)
+                            allEmployees();
+                        })
+                    }).catch((error) => {
+                        console.log(error.message);
+                        res.json({ error: error.message });
+                    })
+                })
+            }
         })
     })
 }
